@@ -18,21 +18,22 @@ pipeline {
         stage('Run k6 Smoke Test') {
             steps {
                 sh '''
-                mkdir -p results
-                k6 run k6/smoke-test.js \
-                  --summary-export results/smoke-summary.json
+                    mkdir -p results
+                    k6 run k6/smoke-test.js \
+                      --summary-export results/smoke-summary.json
                 '''
             }
         }
     }
 
     post {
-    always {
-        script {
-            if (fileExists('results/smoke-summary.json')) {
-                archiveArtifacts artifacts: 'results/*.json', fingerprint: true
-            } else {
-                echo 'No result files to archive.'
+        always {
+            script {
+                if (fileExists('results/smoke-summary.json')) {
+                    archiveArtifacts artifacts: 'results/*.json', fingerprint: true
+                } else {
+                    echo 'No result files to archive.'
+                }
             }
         }
     }
