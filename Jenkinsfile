@@ -27,8 +27,13 @@ pipeline {
     }
 
     post {
-        always {
-            archiveArtifacts artifacts: 'results/*.json', fingerprint: true
+    always {
+        script {
+            if (fileExists('results/smoke-summary.json')) {
+                archiveArtifacts artifacts: 'results/*.json', fingerprint: true
+            } else {
+                echo 'No result files to archive.'
+            }
         }
     }
 }
