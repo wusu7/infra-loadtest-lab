@@ -43,11 +43,11 @@ pipeline {
                       --tag test=redis-kafka-api \
                       --tag run_id=${BUILD_NUMBER} \
                       --stage 30s:100 \
+                      --stage 1m:300 \
+                      --stage 2m:500 \
+                      --stage 2m:700 \
+                      --stage 2m:700 \
                       --stage 1m:200 \
-                      --stage 2m:400 \
-                      --stage 2m:500 \
-                      --stage 2m:500 \
-                      --stage 1m:100 \
                       --stage 30s:0 \
                       --summary-export results/api-load-summary.json
                 '''
