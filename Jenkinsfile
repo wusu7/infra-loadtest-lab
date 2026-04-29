@@ -36,9 +36,19 @@ pipeline {
                     mkdir -p results
                     K6_PROMETHEUS_RW_SERVER_URL=http://172.31.37.123:9090/api/v1/write \
                     K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true \
+                    K6_PROMETHEUS_RW_PUSH_INTERVAL=5s \
                     k6 run k6/api-load-test.js \
                       -e BASE_URL=http://172.31.37.123:8080 \
                       -o experimental-prometheus-rw \
+                      --tag test=redis-kafka-api \
+                      --tag run_id=${BUILD_NUMBER} \
+                      --stage 30s:10 \
+                      --stage 1m:30 \
+                      --stage 2m:60 \
+                      --stage 1m:100 \
+                      --stage 2m:100 \
+                      --stage 1m:20 \
+                      --stage 30s:0 \
                       --summary-export results/api-load-summary.json
                 '''
             }
