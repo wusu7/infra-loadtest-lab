@@ -1,17 +1,23 @@
+# Target 서버에서 실행할 전체 부하테스트/모니터링 스택입니다.
+# Redis, Kafka, Spring Boot API, Prometheus, Grafana를 한 Docker 네트워크 안에서 띄웁니다.
 services:
+  # k6가 직접 Redis에 붙지 않고, Spring Boot API를 통해 Redis 연산을 발생시키는 대상입니다.
   redis:
     image: redis:7
     container_name: loadtest-redis
     ports:
       - "6379:6379"
+    # 부하테스트용이라 디스크 append-only persistence를 끄고 단순 메모리 저장소처럼 사용합니다.
     command: ["redis-server", "--appendonly", "no"]
 
+  # Kafka 7.x 이미지가 사용하는 메타데이터 저장소입니다.
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.1
     container_name: loadtest-zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
 
+  # Spring Boot API가 메시지를 publish할 Kafka broker입니다.
   kafka:
     image: confluentinc/cp-kafka:7.6.1
     container_name: loadtest-kafka
@@ -23,9 +29,13 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      # Target 서버 private IP 기준으로 유지합니다. Jenkins/외부 클라이언트가 Kafka에 접근할 때 쓰입니다.
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://172.31.37.123:9092
+      # 단일 broker 실습 환경이므로 internal topic replication factor를 1로 둡니다.
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
+  # k6가 HTTP로 호출하는 테스트용 Spring Boot API입니다.
+  # API 내부에서 Redis incr/get/set, Kafka publish를 수행합니다.
   test-api:
     build:
       context: ./test-api
@@ -40,6 +50,7 @@ services:
       REDIS_PORT: 6379
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
 
+  # Redis 내부 상태를 Prometheus가 읽을 수 있는 /metrics 형식으로 변환합니다.
   redis-exporter:
     image: oliver006/redis_exporter:latest
     container_name: loadtest-redis-exporter
@@ -50,6 +61,7 @@ services:
     environment:
       REDIS_ADDR: redis://redis:6379
 
+  # Kafka broker/topic/partition 상태를 Prometheus metrics로 노출합니다.
   kafka-exporter:
     image: danielqsj/kafka-exporter:v1.9.0
     container_name: loadtest-kafka-exporter
@@ -60,6 +72,7 @@ services:
     command:
       - "--kafka.server=kafka:9092"
 
+  # Spring Boot Actuator, Redis exporter, Kafka exporter를 주기적으로 scrape합니다.
   prometheus:
     image: prom/prometheus:latest
     container_name: loadtest-prometheus
@@ -69,9 +82,15 @@ services:
       - kafka-exporter
     ports:
       - "9090:9090"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-remote-write-receiver"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
 
+  # Prometheus에 쌓인 메트릭을 대시보드로 보여주는 UI입니다.
+  # 접속: http://<Target Public IP>:3000, 초기 계정: admin/admin
   grafana:
     image: grafana/grafana:latest
     container_name: loadtest-grafana
@@ -84,6 +103,9 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: admin
     volumes:
       - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
 
+# Grafana 대시보드/설정/사용자 변경사항을 컨테이너 재시작 후에도 유지합니다.
 volumes:
   grafana-data:

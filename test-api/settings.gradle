@@ -1,4 +1,5 @@
 pluginManagement {
+    // Gradle plugin을 받을 저장소입니다.
     repositories {
         gradlePluginPortal()
         mavenCentral()
@@ -6,10 +7,12 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
+    // 각 subproject가 임의 저장소를 추가하지 못하게 하고, 여기 선언한 저장소만 사용합니다.
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         mavenCentral()
     }
 }
 
+// Gradle 프로젝트 이름입니다. Docker build와 jar 이름의 기준이 됩니다.
 rootProject.name = 'loadtest-api'

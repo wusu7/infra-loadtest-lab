@@ -1,6 +1,9 @@
 plugins {
+    // Java 애플리케이션을 컴파일하기 위한 기본 플러그인입니다.
     id 'java'
+    // Spring Boot 실행 jar와 bootRun 등을 지원합니다.
     id 'org.springframework.boot' version '3.3.5'
+    // Spring Boot dependency BOM을 적용해 라이브러리 버전 충돌을 줄입니다.
     id 'io.spring.dependency-management' version '1.1.6'
 }
 
@@ -8,17 +11,24 @@ group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 
 java {
+    // Docker 이미지와 서버 런타임 모두 Java 17 기준으로 맞춥니다.
     sourceCompatibility = '17'
 }
 
 dependencies {
+    // REST API를 만들기 위한 Spring MVC/Tomcat 의존성입니다.
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    // Redis StringRedisTemplate을 사용하기 위한 의존성입니다.
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    // KafkaTemplate으로 Kafka에 메시지를 발행하기 위한 의존성입니다.
     implementation 'org.springframework.kafka:spring-kafka'
+    // /actuator/health, /actuator/metrics 같은 운영 endpoint를 제공합니다.
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    // /actuator/prometheus endpoint로 Prometheus 형식 메트릭을 노출합니다.
     implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 tasks.named('test') {
+    // JUnit 5 기반 테스트를 실행하도록 설정합니다.
     useJUnitPlatform()
 }

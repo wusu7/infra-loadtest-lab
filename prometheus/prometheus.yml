@@ -1,16 +1,20 @@
 global:
+  # Prometheus가 각 target의 metrics endpoint를 5초마다 수집합니다.
   scrape_interval: 5s
 
 scrape_configs:
+  # Spring Boot Actuator가 제공하는 Prometheus endpoint입니다.
   - job_name: "spring-boot-test-api"
     metrics_path: "/actuator/prometheus"
     static_configs:
       - targets: ["test-api:8080"]
 
+  # Redis exporter가 Redis 상태를 Prometheus 형식으로 변환해 노출합니다.
   - job_name: "redis-exporter"
     static_configs:
       - targets: ["redis-exporter:9121"]
 
+  # Kafka exporter가 broker/topic/partition 메트릭을 노출합니다.
   - job_name: "kafka-exporter"
     static_configs:
       - targets: ["kafka-exporter:9308"]

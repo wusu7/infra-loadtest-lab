@@ -1,11 +1,25 @@
 server:
+  # Spring Boot API가 컨테이너 내부에서 listen하는 포트입니다.
   port: 8080
 
 spring:
   data:
     redis:
+      # Docker Compose 안에서는 서비스 이름 redis로 접근합니다. 환경변수로 덮어쓸 수 있습니다.
       host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
 
   kafka:
+    # Docker Compose 안에서는 kafka:9092로 broker에 접근합니다.
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # Prometheus scrape와 상태 확인에 필요한 Actuator endpoint만 외부에 노출합니다.
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      # /actuator/health에서 상세 정보를 보여줘 연결 문제를 확인하기 쉽게 합니다.
+      show-details: always
