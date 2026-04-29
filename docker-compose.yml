@@ -84,10 +84,10 @@ services:
       - "9090:9090"
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus"
       - "--web.enable-remote-write-receiver"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
 
   # Prometheus에 쌓인 메트릭을 대시보드로 보여주는 UI입니다.
   # 접속: http://<Target Public IP>:3000, 초기 계정: admin/admin
@@ -109,3 +109,4 @@ services:
 # Grafana 대시보드/설정/사용자 변경사항을 컨테이너 재시작 후에도 유지합니다.
 volumes:
   grafana-data:
+  prometheus-data:
